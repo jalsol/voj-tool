@@ -6,30 +6,20 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 
-static const std::string g_HomeDirectory = "~/.local/bin/VOJData/";
+static const std::string g_HomeDirectory = std::getenv("VOJ_PATH");
 static const std::string g_MainURL = "https://codeforces.com/group/FLVn1Sc504/";
 
 void showHelp();
 std::string strToUpper(char *cTask);
 
-namespace ProcessJSON {
 void readJson(json &j, std::string dataFileName) {
     std::ifstream in(g_HomeDirectory + dataFileName);
     in >> j;
 }
 
-};  // namespace ProcessJSON
+int LoadType = -1;  // 0 if Open | 1 if Submit
 
-namespace VOJ {
-
-enum class LoadType {
-    Open,
-    Submit
-};
-
-LoadType LT;
-
-std::vector<std::string> splitString(std::string s, char delimiter) {
+std::vector<std::string> splitString(const std::string &s, char delimiter) {
     std::stringstream ss(s);
     std::vector<std::string> ret;
 
@@ -43,11 +33,17 @@ std::vector<std::string> splitString(std::string s, char delimiter) {
 }
 
 std::vector<std::string> getIDs(const json &j, const std::string &s) {
+    // Load data from JSON file to stringstream
     std::stringstream ss;
     ss << j[s];
+
+    // Convert from stringstream to string
     std::string t = ss.str();
+
+    // Erase the first and the last characters (being the \" character)
     t.erase(t.begin());
     t.pop_back();
+
     return splitString(t, ',');
 }
 
@@ -60,7 +56,8 @@ void loadProblem(const json &j, const std::string &s) {
 
     std::string URL = g_MainURL + "contest/" + contestID + "/problem/" + problemLetter;
     std::string command;
-    if (LT == LoadType::Open) {
+
+    if (LoadType == 0) {
         command = "xdg-open " + URL;
     }
     else {
@@ -71,19 +68,18 @@ void loadProblem(const json &j, const std::string &s) {
         system(command.data());
     }
     catch (...) {
-        std::cout << "Error." << std::endl;
+        std::cout << "Error.\n";
         exit(EXIT_FAILURE);
     }
 
-    std::cout << "Done" << std::endl;
+    std::cout << "Done.\n";
 }
 
 void Open(char *cTask) {
     std::string taskName = strToUpper(cTask);
-    json j_ProblemIDs;
-    json j_Contests;
-    ProcessJSON::readJson(j_ProblemIDs, "links.json");
-    ProcessJSON::readJson(j_Contests, "contest_name.json");
+    json j_ProblemIDs, j_Contests;
+    readJson(j_ProblemIDs, "/links.json");
+    readJson(j_Contests, "/contest_name.json");
 
     if (j_ProblemIDs.contains(taskName)) {
         std::vector<std::string> IDs = getIDs(j_ProblemIDs, taskName);
@@ -92,7 +88,7 @@ void Open(char *cTask) {
             loadProblem(j_Contests, IDs[0]);
         }
         else {
-            std::cout << "There are several contests to submit to this problem to:" << std::endl;
+            std::cout << "There are several contests to submit this problem to:" << std::endl;
 
             for (size_t id = 0; id < IDs.size(); id++) {
                 std::vector<std::string> contestInfo = splitString(IDs[id], '/');
@@ -106,66 +102,61 @@ void Open(char *cTask) {
                 loadProblem(j_Contests, IDs[option - 1]);
             }
             else {
-                std::cout << "Invalid option. Quitting..." << std::endl;
+                std::cout << "Invalid option. Quitting...\n";
                 exit(EXIT_FAILURE);
             }
         }
     }
     else {
-        std::cout << "hey u sure the problem exists?" << std::endl;
+        std::cout << "hey u sure the problem exists?\n";
         exit(EXIT_FAILURE);
     }
 }
 
-
-};  // namespace VOJ
-
 int main(int argc, char **argv) {
     if (argc < 2) {
-        std::cout << "Not enough arguments." << std::endl;
+        std::cout << "Not enough arguments.\n";
         exit(EXIT_FAILURE);
     }
 
     if (strcmp(argv[1], "help") == 0 || strcmp(argv[1], "h") == 0) {
         showHelp();
+        exit(EXIT_FAILURE);
     }
 
     if (argc < 3) {
-        std::cout << "Not enough arguments." << std::endl;
+        std::cout << "Not enough arguments.\n";
         exit(EXIT_FAILURE);
     }
 
     if (strcmp(argv[1], "open") != 0 && strcmp(argv[1], "submit") != 0) {
-        std::cout << "Illegal command." << std::endl;
+        std::cout << "Illegal command.\n";
         exit(EXIT_FAILURE);
     }
 
     if (strcmp(argv[1], "open") == 0) {
-        VOJ::LT = VOJ::LoadType::Open;
+        LoadType = 0;
     }
     else if (strcmp(argv[1], "submit") == 0) {
-        VOJ::LT = VOJ::LoadType::Submit;
+        LoadType = 1;
     }
     else {
         showHelp();
+        exit(EXIT_FAILURE);
     }
 
-    VOJ::Open(argv[2]);
-
+    Open(argv[2]);
     return EXIT_SUCCESS;
 }
 
 void showHelp() {
-    std::cout << "voj open [problem name]" << std::endl;
-    std::cout << "voj submit [problem name]" << std::endl;
-    exit(EXIT_FAILURE);
+    std::cout << "voj open [problem name]\n";
+    std::cout << "voj submit [problem name]\n";
 }
 
 std::string strToUpper(char *c) {
-    int n = strlen(c);
-    for (int i = 0; i < n; i++) {
-        c[i] = toupper(c[i]);
-    }
-    return std::string(c);
+    std::string s(c);
+    std::transform(s.begin(), s.end(), s.begin(), toupper);
+    return s;
 }
 

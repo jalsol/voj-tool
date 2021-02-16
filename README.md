@@ -1,6 +1,5 @@
 # voj-tool
 Load and submit VOJ problems on Codeforces from the terminal.
-The JSON library used is <a href="https://github.com/nlohmann/json">nlohmann/json</a> (for parsing JSON files)
 (Also please bear with me for this horrible coding style, I'm just a beginner.)
 
 # Requirements
@@ -9,12 +8,18 @@ The JSON library used is <a href="https://github.com/nlohmann/json">nlohmann/jso
 - Currently works in Unix systems (needs extra editing to work for Windows)
 
 # Build
-- Change the variable `g_HomeDirectory` to the location of the `VOJData` folder
 - Build using this command: `g++ -o voj voj.cpp -std=c++11`
+- Set the environment variable to the directory `VOJ_PATH`
+    + Open `~/.bash_profile`
+    + Add this line: `export VOJ_PATH=path/to/VOJData`
+    + Source the file: `source ~/.bash_profile`
 
 # Usage
-Open a problem inside the default browser:
+Open the problem inside the your default browser:
     `voj open [problem]`
 
-Submit to a problem:
+Submit the solution for the problem:
     `voj submit [problem]`
+
+# Dependencies
+- <a href="https://github.com/nlohmann/json">nlohmann/json</a> (already included in the repo)
