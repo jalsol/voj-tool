@@ -7,17 +7,24 @@
 using json = nlohmann::json;
 
 static const std::string g_MainURL = "https://codeforces.com/group/FLVn1Sc504/";
-std::string g_HomeDirectory;  // defined on line 148
+std::string g_HomeDirectory;  // defined inside main()
+int g_LoadType = -1;          // 0 if Open | 1 if Submit
 
-void showHelp();
-std::string strToUpper(char *cTask);
+void showHelp() {
+    std::cout << "voj open [problem name]\n";
+    std::cout << "voj submit [problem name]\n";
+}
+
+std::string strToUpper(char *c) {
+    std::string s(c);
+    std::transform(s.begin(), s.end(), s.begin(), toupper);
+    return s;
+}
 
 void readJson(json &j, std::string dataFileName) {
     std::ifstream in(g_HomeDirectory + dataFileName);
     in >> j;
 }
-
-int LoadType = -1;  // 0 if Open | 1 if Submit
 
 std::vector<std::string> splitString(const std::string &s, char delimiter) {
     std::stringstream ss(s);
@@ -52,12 +59,13 @@ void loadProblem(const json &j_Contests, const std::string &s) {
     std::string contestID = contestInfo[0];
     std::string problemLetter = contestInfo[1];
 
-    std::cout << "Loading contest " << j_Contests[contestID] << ", problem " << problemLetter << "..." << std::endl;
+    std::cout << "[INFO]: Loading contest " << j_Contests[contestID] << ", problem " << problemLetter << "..." << std::endl;
 
     std::string URL = g_MainURL + "contest/" + contestID + "/problem/" + problemLetter;
     std::string command;
 
-    if (LoadType == 0) {
+    if (g_LoadType == 0) {
+        // might change this later on to make it work on Windows
         command = "xdg-open " + URL;
     }
     else {
@@ -70,11 +78,11 @@ void loadProblem(const json &j_Contests, const std::string &s) {
     }
     catch (const std::exception &exception) {
         std::cout << exception.what() << '\n';
-        std::cout << "Error.\n";
+        std::cout << "[ERR]: Exception occurred.\n";
         exit(EXIT_FAILURE);
     }
 
-    std::cout << "Done.\n";
+    std::cout << "[INFO]: Done.\n";
 }
 
 void Open(char *cTask) {
@@ -90,7 +98,7 @@ void Open(char *cTask) {
             loadProblem(j_Contests, IDs[0]);
         }
         else {
-            std::cout << "There are several contests to submit this problem to:" << std::endl;
+            std::cout << "* There are several contests to submit this problem to:" << std::endl;
 
             for (size_t id = 0; id < IDs.size(); id++) {
                 std::vector<std::string> contestInfo = splitString(IDs[id], '/');
@@ -104,20 +112,20 @@ void Open(char *cTask) {
                 loadProblem(j_Contests, IDs[option - 1]);
             }
             else {
-                std::cout << "Invalid option. Quitting...\n";
+                std::cout << "[ERR]: Invalid option. Quitting...\n";
                 exit(EXIT_FAILURE);
             }
         }
     }
     else {
-        std::cout << "hey u sure the problem exists?\n";
+        std::cout << "[ERR]: hey u sure the problem exists?\n";
         exit(EXIT_FAILURE);
     }
 }
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        std::cout << "Not enough arguments.\n";
+        std::cout << "[ERR]: Not enough arguments.\n";
         exit(EXIT_FAILURE);
     }
 
@@ -127,20 +135,21 @@ int main(int argc, char **argv) {
     }
 
     if (argc < 3) {
-        std::cout << "Not enough arguments.\n";
+        std::cout << "[ERR]: Not enough arguments.\n";
         exit(EXIT_FAILURE);
     }
 
     if (strcmp(argv[1], "open") != 0 && strcmp(argv[1], "submit") != 0) {
-        std::cout << "Illegal command.\n";
+        std::cout << "[ERR]: Illegal command.\n";
+        showHelp();
         exit(EXIT_FAILURE);
     }
 
     if (strcmp(argv[1], "open") == 0) {
-        LoadType = 0;
+        g_LoadType = 0;
     }
     else if (strcmp(argv[1], "submit") == 0) {
-        LoadType = 1;
+        g_LoadType = 1;
     }
     else {
         showHelp();
@@ -150,16 +159,5 @@ int main(int argc, char **argv) {
     g_HomeDirectory = std::getenv("VOJ_PATH");
     Open(argv[2]);
     return EXIT_SUCCESS;
-}
-
-void showHelp() {
-    std::cout << "voj open [problem name]\n";
-    std::cout << "voj submit [problem name]\n";
-}
-
-std::string strToUpper(char *c) {
-    std::string s(c);
-    std::transform(s.begin(), s.end(), s.begin(), toupper);
-    return s;
 }
 

@@ -9,10 +9,7 @@ Load and submit VOJ problems on Codeforces from the terminal.<br/>
 
 # Build
 - Build using this command: `g++ -o voj voj.cpp -std=c++11`
-- Set the environment variable to the directory `VOJ_PATH`
-    + Open `~/.bash_profile`
-    + Add this line: `export VOJ_PATH=path/to/VOJData`
-    + Source the file: `source ~/.bash_profile`
+- Set the environment variable to the directory `VOJ_PATH`: `export VOJ_PATH=path/to/VOJData` (may vary for other shells)
 
 # Usage
 Open the problem inside the your default browser: <br/>
