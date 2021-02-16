@@ -6,8 +6,8 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 
-static const std::string g_HomeDirectory = std::getenv("VOJ_PATH");
 static const std::string g_MainURL = "https://codeforces.com/group/FLVn1Sc504/";
+std::string g_HomeDirectory;  // defined on line 148
 
 void showHelp();
 std::string strToUpper(char *cTask);
@@ -47,12 +47,12 @@ std::vector<std::string> getIDs(const json &j, const std::string &s) {
     return splitString(t, ',');
 }
 
-void loadProblem(const json &j, const std::string &s) {
+void loadProblem(const json &j_Contests, const std::string &s) {
     std::vector<std::string> contestInfo = splitString(s, '/');
     std::string contestID = contestInfo[0];
     std::string problemLetter = contestInfo[1];
 
-    std::cout << "Loading contest " << j[contestID] << ", problem " << problemLetter << "..." << std::endl;
+    std::cout << "Loading contest " << j_Contests[contestID] << ", problem " << problemLetter << "..." << std::endl;
 
     std::string URL = g_MainURL + "contest/" + contestID + "/problem/" + problemLetter;
     std::string command;
@@ -65,9 +65,11 @@ void loadProblem(const json &j, const std::string &s) {
     }
 
     try {
+        // I suppose there is no way to find a workaround with this...
         system(command.data());
     }
-    catch (...) {
+    catch (const std::exception &exception) {
+        std::cout << exception.what() << '\n';
         std::cout << "Error.\n";
         exit(EXIT_FAILURE);
     }
@@ -145,6 +147,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
+    g_HomeDirectory = std::getenv("VOJ_PATH");
     Open(argv[2]);
     return EXIT_SUCCESS;
 }
