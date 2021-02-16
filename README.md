@@ -20,3 +20,4 @@ Submit the solution for the problem:<br/>
 
 # Dependencies
 - <a href="https://github.com/nlohmann/json">nlohmann/json</a> (already included in the repo)
+- <a href="https://github.com/xalanq/cf-tool">xalanq/cf-tool</a> (for submitting problems)
