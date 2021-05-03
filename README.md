@@ -1,3 +1,6 @@
+### This project is deprecated
+VNOI has decided to move to their own online judge. They have discontinued support on Codeforces.
+
 # voj-tool
 Load and submit VOJ problems on Codeforces from the terminal.<br/>
 (Also please bear with me for this horrible coding style, I'm just a beginner.)
